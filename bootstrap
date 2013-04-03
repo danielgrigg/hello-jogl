@@ -4,6 +4,7 @@
 
 REPO=maven-repo
 
+[[ -d lib ]] || { echo "No local libs...OK"; exit 0; }
 [[ -d $REPO ]] || mkdir $REPO
 
 for j in $(ls lib/*.jar); do
@@ -11,6 +12,6 @@ for j in $(ls lib/*.jar); do
   JNAME=${JBASE%%.jar}
 
   #TODO -versioning if the JAR has it
-  mvn -q install:install-file -Dfile=$j -DartifactId=$JBASE -Dversion=1.0.0 -DgroupId=local -Dpackaging=jar -DlocalRepositoryPath=$REPO -DcreateChecksum=true
+  mvn -q install:install-file -Dfile=$j -DartifactId=$JNAME -Dversion=1.0.0 -DgroupId=local -Dpackaging=jar -DlocalRepositoryPath=$REPO -DcreateChecksum=true
 done
 
