@@ -3,6 +3,7 @@
   (:import (java.awt Frame))
   (:import (java.awt.event WindowAdapter))
   (:import (javax.media.opengl.awt GLCanvas))
+  (:import (javax.media.opengl.fixedfunc GLMatrixFunc))
   (:import (javax.media.opengl GL2 GL GLAutoDrawable GLEventListener))
   (:import (com.jogamp.opengl.util Animator)))
 
@@ -28,6 +29,8 @@
     (getWidth [this]
       256)))
 
+(def time (atom 0.0))
+
 (defn jogl-listener []
   (reify GLEventListener
     (display [this drawable]
@@ -36,17 +39,41 @@
       (do
         (let [gl (.. drawable getGL getGL2)]
           (doto gl
-            (.glClearColor 0.5 0.9 0.9 1.0)
+            (.glClearColor 0.3 0.3 0.3 1.0)
               (.glClearDepth 1.0)
-              (.glDisable GL/GL_DEPTH_TEST)
+              (.glEnable GL/GL_DEPTH_TEST)
               (.glClear GL/GL_DEPTH_BUFFER_BIT)
               (.glClear GL/GL_COLOR_BUFFER_BIT)         
+              (.glLoadIdentity)
+              (.glTranslatef 0.0 0.0 -5.0)
+              (.glRotatef @time 0.0 0.0 1.0)
+              (.glBegin GL2/GL_QUADS)
+              (.glColor3f 1.0 0.0 0.0)
+              (.glVertex3f -1.0 1.0 0.0)
+              (.glVertex3f 1.0 1.0 0.0)
+              (.glVertex3f 1.0 -1.0 0.0)
+              (.glVertex3f -1.0 -1.0 0.0)
+              (.glEnd)
          ))
-        ))
-    (reshape [this drawable x y width height])
+        )
+        (swap! time #(+ % 0.2))
+)
+    (reshape [this drawable x y width height]
+      (let [gl (.. drawable getGL getGL2)
+            aspect (float (/ width height))
+            fh 0.5
+            fw (* fh aspect)]
+        (doto gl
+          (.glMatrixMode GLMatrixFunc/GL_PROJECTION)
+          (.glLoadIdentity)
+          (.glFrustum (- fw) fw (- fh) fh 1.0 1000.0)
+          (.glMatrixMode GLMatrixFunc/GL_MODELVIEW)
+          (.glLoadIdentity))))
+
     (dispose [this drawable])
 
-    (init [this drawable])))
+    (init [this drawable])
+    ))
 
 
 (defn add-window-listener [component]
